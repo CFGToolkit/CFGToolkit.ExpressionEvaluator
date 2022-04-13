@@ -48,9 +48,16 @@ namespace CFGToolkit.ExpressionEvaluator
 
                     if (t.Parent.Name == "number")
                     {
-                       var value = double.Parse(t.Value.Trim());
-                        _values[t] = value;
-                        return value;
+                        if (int.TryParse(t.Value.Trim(), out int res))
+                        {
+                            _values[t] = res;
+                        }
+                        else
+                        {
+                            var value = double.Parse(t.Value.Trim());
+                            _values[t] = value;
+                            return value;
+                        }
                     }
                 }
 
@@ -94,36 +101,22 @@ namespace CFGToolkit.ExpressionEvaluator
 
                                 if (val is double)
                                 {
-                                    var op = node.Children.First() as SyntaxNode;
-                                    var opToken = op.Children[0] as SyntaxToken;
-                                    var doubleVal = (double)val;
+                                    HandleExpressionPrimaryDouble(node, val);
+                                }
 
-                                    switch (opToken.Value)
-                                    {
-                                        case "+":
-                                            break;
-                                        case "-":
-                                            doubleVal = -doubleVal;
-                                            break;
-                                        case "--":
-                                            doubleVal = --doubleVal;
-                                            break;
-                                        case "++":
-                                            doubleVal = ++doubleVal;
-                                            break;
-                                        default:
-                                            throw new Exception("Unsupported operator");
-
-                                    }
-
-                                    _values[node] = doubleVal;
-                                    return val;
+                                if (val is int)
+                                {
+                                    HandleExpressionPrimaryInt(node, val);
                                 }
 
                                 if (val is DateTime)
                                 {
-                                    _values[node] = val;
-                                    return val;
+                                    HandleExpressionPrimaryDateTime(node, val);
+                                }
+
+                                if (val is bool)
+                                {
+                                    HandleExpressionPrimaryBool(node, val);
                                 }
                             }
                         }
@@ -136,166 +129,344 @@ namespace CFGToolkit.ExpressionEvaluator
 
                                 if (leftValue is double)
                                 {
-                                    if (node.Children.Count == 2)
-                                    {
-                                        var right = node.Children[1] as SyntaxNodeMany;
+                                    HandleExpressionDouble(node, leftValue);
+                                }
 
-                                        if (right.Repeated.Count != 0)
-                                        {
-                                            foreach (SyntaxNode item in right.Repeated)
-                                            {
-                                                var op = item.Children[0] as SyntaxNode;
-                                                var opToken = op.Children[0] as SyntaxToken;
-                                                var opRight = item.Children[1];
-                                                var opRightValue = _values[opRight];
-                                                var opRightValueDouble = (double)opRightValue;
-
-                                                switch (opToken.Value)
-                                                {
-                                                    case "+":
-                                                        var total = 0.0;
-                                                        total += (double)leftValue;
-                                                        total += opRightValueDouble;
-                                                        _values[node] = total;
-                                                        break;
-                                                    case "-":
-                                                        total = 0.0;
-                                                        total += (double)leftValue;
-                                                        total -= opRightValueDouble;
-                                                        _values[node] = total;
-                                                        break;
-                                                    case "*":
-                                                        total = 0.0;
-                                                        total += (double)leftValue;
-                                                        total *= opRightValueDouble;
-                                                        _values[node] = total;
-                                                        break;
-                                                    case "/":
-                                                        total = 0.0;
-                                                        total += (double)leftValue;
-                                                        total /= opRightValueDouble;
-                                                        _values[node] = total;
-                                                        break;
-                                                    case "<":
-                                                        _values[node] = (double)leftValue < opRightValueDouble;
-                                                        break;
-                                                    case "<=":
-                                                        _values[node] = (double)leftValue <= opRightValueDouble;
-                                                        break;
-                                                    case ">=":
-                                                        _values[node] = (double)leftValue >= opRightValueDouble;
-                                                        break;
-                                                    case ">":
-                                                        _values[node] = (double)leftValue > opRightValueDouble;
-                                                        break;
-                                                    default:
-                                                        throw new Exception("Unsupported operator");
-                                                }
-                                            }
-                                        }
-                                        else
-                                        {
-                                            _values[node] = leftValue;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        _values[node] = leftValue;
-                                    }
+                                if (leftValue is int)
+                                {
+                                    HandleExpressionInt(node, leftValue);
                                 }
 
                                 if (leftValue is DateTime)
                                 {
-                                    var current = (DateTime)leftValue;
-
-                                    if (node.Children.Count == 2)
-                                    {
-                                        var right = node.Children[1] as SyntaxNodeMany;
-
-                                        if (right.Repeated.Count != 0)
-                                        {
-                                            foreach (SyntaxNode item in right.Repeated)
-                                            {
-                                                var op = item.Children[0] as SyntaxNode;
-                                                var opToken = op.Children[0] as SyntaxToken;
-                                                var opRight = item.Children[1];
-                                                var opRightValue = _values[opRight];
-                                                var opRightValueDateTime = (DateTime)opRightValue;
-
-                                                switch (opToken.Value)
-                                                {
-                                                    case "<=":
-                                                        _values[node] = current <= opRightValueDateTime;
-                                                        break;
-                                                    case "<":
-                                                        _values[node] = current < opRightValueDateTime;
-                                                        break;
-                                                    case ">=":
-                                                        _values[node] = current >= opRightValueDateTime;
-                                                        break;
-                                                    case ">":
-                                                        _values[node] = current > opRightValueDateTime;
-                                                        break;
-                                                    default:
-                                                        throw new Exception("Unsupported operator");
-                                                }
-                                            }
-                                        }
-                                        else
-                                        {
-                                            _values[node] = current;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        _values[node] = current;
-                                    }
+                                    HandleExpressionDateTime(node, leftValue);
                                 }
 
                                 if (leftValue is bool)
                                 {
-                                    if (node.Children.Count == 2)
-                                    {
-                                        var right = node.Children[1] as SyntaxNodeMany;
-
-                                        if (right.Repeated.Count != 0)
-                                        {
-                                            foreach (SyntaxNode item in right.Repeated)
-                                            {
-                                                var op = item.Children[0] as SyntaxNode;
-                                                var opToken = op.Children[0] as SyntaxToken;
-                                                var opRight = item.Children[1];
-                                                var opRightValue = _values[opRight];
-                                                var opRightValueBool = (bool)opRightValue;
-
-                                                switch (opToken.Value)
-                                                {
-                                                    case "&&":
-                                                        _values[node] = (bool)leftValue && opRightValueBool;
-                                                        break;
-                                                    case "||":
-                                                        _values[node] = (bool)leftValue || opRightValueBool;
-                                                        break;
-                                                    default:
-                                                        throw new Exception("Unsupported operator");
-                                                }
-                                            }
-                                        }
-                                        else
-                                        {
-                                            _values[node] = (bool)leftValue;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        _values[node] = (bool)leftValue;
-                                    }
+                                    HandleExpressionBool(node, leftValue);
                                 }
                             }
                         }
                     }
                 }
                 return 0.0;
+            }
+
+
+            private void HandleExpressionDouble(SyntaxNode node, object leftValue)
+            {
+                if (node.Children.Count == 2)
+                {
+                    var right = node.Children[1] as SyntaxNodeMany;
+
+                    if (right.Repeated.Count != 0)
+                    {
+                        foreach (SyntaxNode item in right.Repeated)
+                        {
+                            var op = item.Children[0] as SyntaxNode;
+                            var opToken = op.Children[0] as SyntaxToken;
+                            var opRight = item.Children[1];
+                            var opRightValue = _values[opRight];
+                            var opRightValueDouble = (double)opRightValue;
+
+                            switch (opToken.Value)
+                            {
+                                case "+":
+                                    var total = 0.0;
+                                    total += (double)leftValue;
+                                    total += opRightValueDouble;
+                                    _values[node] = total;
+                                    break;
+                                case "-":
+                                    total = 0.0;
+                                    total += (double)leftValue;
+                                    total -= opRightValueDouble;
+                                    _values[node] = total;
+                                    break;
+                                case "*":
+                                    total = 0.0;
+                                    total += (double)leftValue;
+                                    total *= opRightValueDouble;
+                                    _values[node] = total;
+                                    break;
+                                case "/":
+                                    total = 0.0;
+                                    total += (double)leftValue;
+                                    total /= opRightValueDouble;
+                                    _values[node] = total;
+                                    break;
+                                case "<":
+                                    _values[node] = (double)leftValue < opRightValueDouble;
+                                    break;
+                                case "<=":
+                                    _values[node] = (double)leftValue <= opRightValueDouble;
+                                    break;
+                                case ">=":
+                                    _values[node] = (double)leftValue >= opRightValueDouble;
+                                    break;
+                                case ">":
+                                    _values[node] = (double)leftValue > opRightValueDouble;
+                                    break;
+                                default:
+                                    throw new Exception("Unsupported operator");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        _values[node] = leftValue;
+                    }
+                }
+                else
+                {
+                    _values[node] = leftValue;
+                }
+            }
+
+            private void HandleExpressionBool(SyntaxNode node, object leftValue)
+            {
+                if (node.Children.Count == 2)
+                {
+                    var right = node.Children[1] as SyntaxNodeMany;
+
+                    if (right.Repeated.Count != 0)
+                    {
+                        foreach (SyntaxNode item in right.Repeated)
+                        {
+                            var op = item.Children[0] as SyntaxNode;
+                            var opToken = op.Children[0] as SyntaxToken;
+                            var opRight = item.Children[1];
+                            var opRightValue = _values[opRight];
+                            var opRightValueBool = (bool)opRightValue;
+
+                            switch (opToken.Value)
+                            {
+                                case "&&":
+                                    _values[node] = (bool)leftValue && opRightValueBool;
+                                    break;
+                                case "||":
+                                    _values[node] = (bool)leftValue || opRightValueBool;
+                                    break;
+                                default:
+                                    throw new Exception("Unsupported operator");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        _values[node] = (bool)leftValue;
+                    }
+                }
+                else
+                {
+                    _values[node] = (bool)leftValue;
+                }
+            }
+
+            private void HandleExpressionDateTime(SyntaxNode node, object leftValue)
+            {
+                var current = (DateTime)leftValue;
+
+                if (node.Children.Count == 2)
+                {
+                    var right = node.Children[1] as SyntaxNodeMany;
+
+                    if (right.Repeated.Count != 0)
+                    {
+                        foreach (SyntaxNode item in right.Repeated)
+                        {
+                            var op = item.Children[0] as SyntaxNode;
+                            var opToken = op.Children[0] as SyntaxToken;
+                            var opRight = item.Children[1];
+                            var opRightValue = _values[opRight];
+                            var opRightValueDateTime = (DateTime)opRightValue;
+
+                            switch (opToken.Value)
+                            {
+                                case "<=":
+                                    _values[node] = current <= opRightValueDateTime;
+                                    break;
+                                case "<":
+                                    _values[node] = current < opRightValueDateTime;
+                                    break;
+                                case ">=":
+                                    _values[node] = current >= opRightValueDateTime;
+                                    break;
+                                case ">":
+                                    _values[node] = current > opRightValueDateTime;
+                                    break;
+                                default:
+                                    throw new Exception("Unsupported operator");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        _values[node] = current;
+                    }
+                }
+                else
+                {
+                    _values[node] = current;
+                }
+            }
+
+            private void HandleExpressionInt(SyntaxNode node, object leftValue)
+            {
+                if (node.Children.Count == 2)
+                {
+                    var right = node.Children[1] as SyntaxNodeMany;
+
+                    if (right.Repeated.Count != 0)
+                    {
+                        foreach (SyntaxNode item in right.Repeated)
+                        {
+                            var op = item.Children[0] as SyntaxNode;
+                            var opToken = op.Children[0] as SyntaxToken;
+                            var opRight = item.Children[1];
+                            var opRightValue = _values[opRight];
+                            var opRightValueDouble = double.Parse(opRightValue.ToString());
+
+                            switch (opToken.Value)
+                            {
+                                case "+":
+                                    double total = 0;
+                                    total += (int)leftValue;
+                                    total += opRightValueDouble;
+                                    _values[node] = total;
+                                    break;
+                                case "-":
+                                    total = 0;
+                                    total += (int)leftValue;
+                                    total -= opRightValueDouble;
+                                    _values[node] = total;
+                                    break;
+                                case "*":
+                                    total = 0;
+                                    total += (int)leftValue;
+                                    total *= opRightValueDouble;
+                                    _values[node] = total;
+                                    break;
+                                case "/":
+                                    total = 0;
+                                    total += (int)leftValue;
+                                    total /= opRightValueDouble;
+                                    _values[node] = total;
+                                    break;
+                                case "<":
+                                    _values[node] = (int)leftValue < opRightValueDouble;
+                                    break;
+                                case "<=":
+                                    _values[node] = (int)leftValue <= opRightValueDouble;
+                                    break;
+                                case ">=":
+                                    _values[node] = (int)leftValue >= opRightValueDouble;
+                                    break;
+                                case ">":
+                                    _values[node] = (int)leftValue > opRightValueDouble;
+                                    break;
+                                default:
+                                    throw new Exception("Unsupported operator");
+                            }
+
+                            if (_values[node] is double d)
+                            {
+                                if (int.TryParse(d.ToString(), out var res))
+                                {
+                                    _values[node] = res;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        _values[node] = leftValue;
+                    }
+                }
+                else
+                {
+                    _values[node] = leftValue;
+                }
+            }
+
+            private void HandleExpressionPrimaryDateTime(SyntaxNode node, object val)
+            {
+                _values[node] = val;
+            }
+
+            private void HandleExpressionPrimaryInt(SyntaxNode node, object val)
+            {
+                var op = node.Children.First() as SyntaxNode;
+                var opToken = op.Children[0] as SyntaxToken;
+                var doubleVal = (int)val;
+
+                switch (opToken.Value)
+                {
+                    case "+":
+                        break;
+                    case "-":
+                        doubleVal = -doubleVal;
+                        break;
+                    case "--":
+                        doubleVal = --doubleVal;
+                        break;
+                    case "++":
+                        doubleVal = ++doubleVal;
+                        break;
+                    default:
+                        throw new Exception("Unsupported operator");
+
+                }
+
+                _values[node] = doubleVal;
+            }
+
+            private void HandleExpressionPrimaryDouble(SyntaxNode node, object val)
+            {
+                var op = node.Children.First() as SyntaxNode;
+                var opToken = op.Children[0] as SyntaxToken;
+                var doubleVal = (double)val;
+
+                switch (opToken.Value)
+                {
+                    case "+":
+                        break;
+                    case "-":
+                        doubleVal = -doubleVal;
+                        break;
+                    case "--":
+                        doubleVal = --doubleVal;
+                        break;
+                    case "++":
+                        doubleVal = ++doubleVal;
+                        break;
+                    default:
+                        throw new Exception("Unsupported operator");
+
+                }
+
+                _values[node] = doubleVal;
+            }
+
+
+            private void HandleExpressionPrimaryBool(SyntaxNode node, object val)
+            {
+                var op = node.Children.First() as SyntaxNode;
+                var opToken = op.Children[0] as SyntaxToken;
+                var doubleVal = (bool)val;
+
+                switch (opToken.Value)
+                {
+                    case "!":
+                        doubleVal = !doubleVal;
+                        break;
+                    default:
+                        throw new Exception("Unsupported operator");
+
+                }
+
+                _values[node] = doubleVal;
             }
         }
     }
