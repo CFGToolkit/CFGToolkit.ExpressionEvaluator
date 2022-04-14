@@ -46,6 +46,14 @@ namespace CFGToolkit.ExpressionEvaluator
                         return _values[t];
                     }
 
+                    if (t.Parent.Name == "index")
+                    {
+                        if (int.TryParse(t.Value.Trim(), out int res))
+                        {
+                            _values[t] = res;
+                        }
+                    }
+
                     if (t.Parent.Name == "number")
                     {
                         if (int.TryParse(t.Value.Trim(), out int res))
@@ -77,6 +85,13 @@ namespace CFGToolkit.ExpressionEvaluator
                     }
                     else
                     {
+                        if (node.Name == "variable_or_index")
+                        {
+                            var val = _values[node.Children[0]];
+                            _values[node] = val;
+                            return val;
+                        }
+
                         if (node.Name == "primary")
                         {
                             if (node.Children.Count == 3) // brackets
@@ -84,6 +99,39 @@ namespace CFGToolkit.ExpressionEvaluator
                                 var val = _values[node.Children[1]];
                                 _values[node] = val;
                                 return val;
+                            }
+
+                            if (node.Children.Count == 4) // array
+                            {
+                                var variable = _values[node.Children[0]];
+                                var index = _values[node.Children[2]];
+
+                                if (index is not int)
+                                {
+                                    throw new Exception("Array index is not an integer");
+                                }
+
+                                if (!variable.GetType().IsArray)
+                                {
+                                    throw new Exception("Variable is not an array");
+                                }
+
+                                if (variable is int[] intArray)
+                                {
+                                    _values[node] = intArray[(int)index];
+                                }
+
+                                if (variable is bool[] boolArray)
+                                {
+                                    _values[node] = boolArray[(int)index];
+                                }
+
+                                if (variable is double[] doubleArray)
+                                {
+                                    _values[node] = doubleArray[(int)index];
+                                }
+
+                                return variable;
                             }
                         }
 
@@ -153,19 +201,18 @@ namespace CFGToolkit.ExpressionEvaluator
                 return 0.0;
             }
 
-
             private void HandleExpressionDouble(SyntaxNode node, object leftValue)
             {
                 if (node.Children.Count == 2)
                 {
-                    var right = node.Children[1] as SyntaxNodeMany;
+                    var right = (SyntaxNodeMany)node.Children[1];
 
                     if (right.Repeated.Count != 0)
                     {
                         foreach (SyntaxNode item in right.Repeated)
                         {
-                            var op = item.Children[0] as SyntaxNode;
-                            var opToken = op.Children[0] as SyntaxToken;
+                            var op = (SyntaxNode)item.Children[0];
+                            var opToken = (SyntaxToken)op.Children[0];
                             var opRight = item.Children[1];
                             var opRightValue = _values[opRight];
                             var opRightValueDouble = (double)opRightValue;
@@ -228,14 +275,14 @@ namespace CFGToolkit.ExpressionEvaluator
             {
                 if (node.Children.Count == 2)
                 {
-                    var right = node.Children[1] as SyntaxNodeMany;
+                    var right = (SyntaxNodeMany)node.Children[1];
 
                     if (right.Repeated.Count != 0)
                     {
                         foreach (SyntaxNode item in right.Repeated)
                         {
-                            var op = item.Children[0] as SyntaxNode;
-                            var opToken = op.Children[0] as SyntaxToken;
+                            var op = (SyntaxNode)item.Children[0];
+                            var opToken = (SyntaxToken)op.Children[0];
                             var opRight = item.Children[1];
                             var opRightValue = _values[opRight];
                             var opRightValueBool = (bool)opRightValue;
@@ -270,14 +317,14 @@ namespace CFGToolkit.ExpressionEvaluator
 
                 if (node.Children.Count == 2)
                 {
-                    var right = node.Children[1] as SyntaxNodeMany;
+                    var right = (SyntaxNodeMany)node.Children[1];
 
                     if (right.Repeated.Count != 0)
                     {
                         foreach (SyntaxNode item in right.Repeated)
                         {
-                            var op = item.Children[0] as SyntaxNode;
-                            var opToken = op.Children[0] as SyntaxToken;
+                            var op = (SyntaxNode)item.Children[0];
+                            var opToken = (SyntaxToken)op.Children[0];
                             var opRight = item.Children[1];
                             var opRightValue = _values[opRight];
                             var opRightValueDateTime = (DateTime)opRightValue;
@@ -316,14 +363,14 @@ namespace CFGToolkit.ExpressionEvaluator
             {
                 if (node.Children.Count == 2)
                 {
-                    var right = node.Children[1] as SyntaxNodeMany;
+                    var right = (SyntaxNodeMany)node.Children[1];
 
                     if (right.Repeated.Count != 0)
                     {
                         foreach (SyntaxNode item in right.Repeated)
                         {
-                            var op = item.Children[0] as SyntaxNode;
-                            var opToken = op.Children[0] as SyntaxToken;
+                            var op = (SyntaxNode)item.Children[0];
+                            var opToken = (SyntaxToken)op.Children[0];
                             var opRight = item.Children[1];
                             var opRightValue = _values[opRight];
                             var opRightValueDouble = double.Parse(opRightValue.ToString());
@@ -397,8 +444,8 @@ namespace CFGToolkit.ExpressionEvaluator
 
             private void HandleExpressionPrimaryInt(SyntaxNode node, object val)
             {
-                var op = node.Children.First() as SyntaxNode;
-                var opToken = op.Children[0] as SyntaxToken;
+                var op = (SyntaxNode)node.Children.First();
+                var opToken = (SyntaxToken)op.Children[0];
                 var doubleVal = (int)val;
 
                 switch (opToken.Value)
@@ -424,8 +471,8 @@ namespace CFGToolkit.ExpressionEvaluator
 
             private void HandleExpressionPrimaryDouble(SyntaxNode node, object val)
             {
-                var op = node.Children.First() as SyntaxNode;
-                var opToken = op.Children[0] as SyntaxToken;
+                var op = (SyntaxNode)node.Children.First();
+                var opToken = (SyntaxToken)op.Children[0];
                 var doubleVal = (double)val;
 
                 switch (opToken.Value)
@@ -449,11 +496,10 @@ namespace CFGToolkit.ExpressionEvaluator
                 _values[node] = doubleVal;
             }
 
-
             private void HandleExpressionPrimaryBool(SyntaxNode node, object val)
             {
-                var op = node.Children.First() as SyntaxNode;
-                var opToken = op.Children[0] as SyntaxToken;
+                var op = (SyntaxNode)node.Children.First();
+                var opToken = (SyntaxToken)op.Children[0];
                 var doubleVal = (bool)val;
 
                 switch (opToken.Value)

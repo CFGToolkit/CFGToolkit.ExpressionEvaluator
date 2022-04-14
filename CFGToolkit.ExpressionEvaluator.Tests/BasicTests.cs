@@ -15,7 +15,8 @@ namespace CFGToolkit.ExpressionEvaluator.Tests
                 { "x", 1 },
                 { "flag", false },
                 { "date1", new DateTime(2000, 1, 2) },
-                { "date2", new DateTime(2000, 1, 4) }
+                { "date2", new DateTime(2000, 1, 4) },
+                { "arr", new int[] { 1, 2, 3, 4} }
             };
         }
 
@@ -49,6 +50,10 @@ namespace CFGToolkit.ExpressionEvaluator.Tests
                 new object[] { @"!false", true },
                 new object[] { @"flag", false },
                 new object[] { @"!flag", true },
+                new object[] { @"arr[0]", 1 },
+                new object[] { @"arr[1+2]", 4 },
+                new object[] { @"arr[x]", 2 },
+                new object[] { @"arr[x+1]", 3 },
         };
     }
 }
