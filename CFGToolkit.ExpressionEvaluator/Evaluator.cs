@@ -12,16 +12,15 @@ namespace CFGToolkit.ExpressionEvaluator
             if (language == ExpressionParser.ExpressionLanguage.C)
             {
                 var parseTree = ExpressionParser.ExpressionParser.Parse(expression, ExpressionParser.ExpressionLanguage.C);
-                var parentSet = new SetParentVisitor();
-                var traversal = new PostOrderTreeTraversal<bool>(parentSet);
-                traversal.Accept(parseTree, new TreeTraversalContext());
+                var setParentTraversal = new PostOrderTreeTraversal<bool>(new SetParentVisitor());
+                setParentTraversal.Accept(parseTree, new TreeTraversalContext());
 
                 var finalVariables = new Dictionary<string, object>(variables);
                 finalVariables["true"] = true;
                 finalVariables["false"] = false;
 
-                var traversal2 = new PostOrderTreeTraversal<object>(new EvalVisitor(finalVariables));
-                return traversal2.Accept(parseTree, new TreeTraversalContext());
+                var evalTraversal = new PostOrderTreeTraversal<object>(new EvalVisitor(finalVariables));
+                return evalTraversal.Accept(parseTree, new TreeTraversalContext());
             }
             throw new InvalidOperationException("Unsupported expression");
         }
@@ -44,14 +43,6 @@ namespace CFGToolkit.ExpressionEvaluator
                     {
                         _values[t] = _variables[t.Value];
                         return _values[t];
-                    }
-
-                    if (t.Parent.Name == "index")
-                    {
-                        if (int.TryParse(t.Value.Trim(), out int res))
-                        {
-                            _values[t] = res;
-                        }
                     }
 
                     if (t.Parent.Name == "number")
@@ -85,13 +76,6 @@ namespace CFGToolkit.ExpressionEvaluator
                     }
                     else
                     {
-                        if (node.Name == "variable_or_index")
-                        {
-                            var val = _values[node.Children[0]];
-                            _values[node] = val;
-                            return val;
-                        }
-
                         if (node.Name == "primary")
                         {
                             if (node.Children.Count == 3) // brackets
@@ -412,6 +396,12 @@ namespace CFGToolkit.ExpressionEvaluator
                                     break;
                                 case ">":
                                     _values[node] = (int)leftValue > opRightValueDouble;
+                                    break;
+                                case "&":
+                                    _values[node] = (int)leftValue & (int)opRightValueDouble;
+                                    break;
+                                case "&&":
+                                    _values[node] = (int)leftValue > 0 && (int)opRightValueDouble > 0;
                                     break;
                                 default:
                                     throw new Exception("Unsupported operator");

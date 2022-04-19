@@ -54,6 +54,11 @@ namespace CFGToolkit.ExpressionEvaluator.Tests
                 new object[] { @"arr[1+2]", 4 },
                 new object[] { @"arr[x]", 2 },
                 new object[] { @"arr[x+1]", 3 },
+                new object[] { @"2 & 2", 2 },
+                new object[] { @"(2 & 2)", 2 },
+                new object[] { @"(2 & 0)", 0 },
+                new object[] { @"(2 && 0)", false },
+                new object[] { @"(2 && 2)", true },
         };
     }
 }
