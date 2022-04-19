@@ -59,6 +59,8 @@ namespace CFGToolkit.ExpressionEvaluator.Tests
                 new object[] { @"(2 & 0)", 0 },
                 new object[] { @"(2 && 0)", false },
                 new object[] { @"(2 && 2)", true },
+                new object[] { @"(2 == 2 && 2 == 2)", true },
+                new object[] { @"(2 == 2 && 2 == 3)", false },
         };
     }
 }

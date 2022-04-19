@@ -34,7 +34,6 @@ namespace CFGToolkit.ExpressionEvaluator
             {
                 _variables = variables;
             }
-
             public object Visit(ISyntaxElement element, TreeTraversalContext context)
             {
                 if (element is SyntaxToken t)
@@ -230,6 +229,9 @@ namespace CFGToolkit.ExpressionEvaluator
                                 case "<":
                                     _values[node] = (double)leftValue < opRightValueDouble;
                                     break;
+                                case "==":
+                                    _values[node] = (double)leftValue == opRightValueDouble;
+                                    break;
                                 case "<=":
                                     _values[node] = (double)leftValue <= opRightValueDouble;
                                     break;
@@ -276,6 +278,9 @@ namespace CFGToolkit.ExpressionEvaluator
                                 case "&&":
                                     _values[node] = (bool)leftValue && opRightValueBool;
                                     break;
+                                case "==":
+                                    _values[node] = (bool)leftValue == opRightValueBool;
+                                    break;
                                 case "||":
                                     _values[node] = (bool)leftValue || opRightValueBool;
                                     break;
@@ -320,6 +325,9 @@ namespace CFGToolkit.ExpressionEvaluator
                                     break;
                                 case "<":
                                     _values[node] = current < opRightValueDateTime;
+                                    break;
+                                case "==":
+                                    _values[node] = current == opRightValueDateTime;
                                     break;
                                 case ">=":
                                     _values[node] = current >= opRightValueDateTime;
@@ -390,6 +398,9 @@ namespace CFGToolkit.ExpressionEvaluator
                                     break;
                                 case "<=":
                                     _values[node] = (int)leftValue <= opRightValueDouble;
+                                    break;
+                                case "==":
+                                    _values[node] = (int)leftValue == opRightValueDouble;
                                     break;
                                 case ">=":
                                     _values[node] = (int)leftValue >= opRightValueDouble;
