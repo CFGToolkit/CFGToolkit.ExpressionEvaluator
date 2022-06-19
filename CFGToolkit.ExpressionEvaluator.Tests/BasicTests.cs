@@ -22,7 +22,7 @@ namespace CFGToolkit.ExpressionEvaluator.Tests
 
         [Theory]
         [MemberData(nameof(Data))]
-        public void Parse(string expression, object value)
+        public void Eval(string expression, object value)
         {
             Assert.Equal(value, Evaluator.Eval(expression, _vars, ExpressionParser.ExpressionLanguage.C));
         }

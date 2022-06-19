@@ -18,9 +18,9 @@ Support for C language expressions</Description>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CFGToolkit.AST" Version="1.0.0-beta-6" />
-    <PackageReference Include="CFGToolkit.ExpressionParser" Version="1.0.0-alfa-04" />
-    <PackageReference Include="CFGToolkit.ParserCombinator" Version="1.0.0-beta-15" />
+    <PackageReference Include="CFGToolkit.AST" Version="1.0.0-beta-7" />
+    <PackageReference Include="CFGToolkit.ExpressionParser" Version="1.0.0-alfa-05" />
+    <PackageReference Include="CFGToolkit.ParserCombinator" Version="1.0.0-beta-23" />
   </ItemGroup>
 
 </Project>
