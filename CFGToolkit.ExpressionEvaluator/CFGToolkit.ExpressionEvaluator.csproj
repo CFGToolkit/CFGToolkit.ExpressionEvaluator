@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Version>1.0.0-alfa-05</Version>
+    <Version>1.0.0-alfa-06</Version>
     <Authors>Marcin Gołębiowski</Authors>
     <Company>CFGToolkit</Company>
     <Description>An expression evaluator for .NET.
